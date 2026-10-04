@@ -95,6 +95,8 @@ mod identifier;
 mod impls;
 mod parse;
 
+pub mod release;
+
 #[cfg(feature = "serde")]
 mod serde;
 
