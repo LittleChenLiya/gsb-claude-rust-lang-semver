@@ -66,6 +66,21 @@ Dependencies]* chapter of the Cargo reference.
 
 <br>
 
+## Release planning
+
+The [`semver::release`] module plans a small, offline set of package releases:
+it takes current versions, explicit bump levels, and declared internal
+dependency ranges, and returns the packages that must publish and their new
+versions. A dependency release that leaves a declared range forces the
+dependent to release at least a patch and rewrites the range to the new caret
+range, propagating until stable; cyclic dependencies are evaluated together as
+strongly connected components, and pre-release versions and requirements are
+rejected. The propagation rules are documented on the module.
+
+[`semver::release`]: https://docs.rs/semver/1/semver/release/index.html
+
+<br>
+
 #### License
 
 <sup>

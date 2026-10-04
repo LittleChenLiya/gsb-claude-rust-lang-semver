@@ -94,16 +94,20 @@ mod eval;
 mod identifier;
 mod impls;
 mod parse;
+pub mod release;
 
 #[cfg(feature = "serde")]
 mod serde;
+
+pub use crate::parse::Error;
+pub use crate::release::{
+    Bump, Dependency, Package, PlanError, Release, ReleasePlan, UpdatedDependency,
+};
 
 use crate::identifier::Identifier;
 use alloc::vec::Vec;
 use core::cmp::Ordering;
 use core::str::FromStr;
-
-pub use crate::parse::Error;
 
 /// **SemVer version** as defined by <https://semver.org>.
 ///
