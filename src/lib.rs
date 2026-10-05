@@ -88,6 +88,7 @@
 
 extern crate alloc;
 
+pub mod codec;
 mod display;
 mod error;
 mod eval;

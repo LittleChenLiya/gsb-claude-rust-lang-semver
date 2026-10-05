@@ -45,6 +45,33 @@ fn main() {
 
 <br>
 
+## Binary codec
+
+The [`semver::codec`] module provides a versioned binary wire format for
+exchanging a `VersionReq`. Presence bits record which of `minor`, `patch`, and
+pre-release were actually written, so `^1`, `^1.2`, and `^1.2.0` stay distinct
+through a round trip instead of having omitted fields padded with zeroes.
+
+```rust
+use semver::VersionReq;
+
+let req = VersionReq::parse("^1.2").unwrap();
+let bytes = req.to_binary().unwrap();
+let back = VersionReq::from_binary(&bytes).unwrap();
+assert_eq!(back, req);
+assert_eq!(back.comparators[0].patch, None);
+```
+
+Frames are checked on decode (unknown op codes and illegal presence-bit
+combinations are rejected, pre-release bytes are validated against the usual
+grammar, trailing bytes are rejected) and re-verified through the original
+parser. See [`docs/protocol.md`] for the protocol table and the cargo commands.
+
+[`semver::codec`]: https://docs.rs/semver/latest/semver/codec/index.html
+[`docs/protocol.md`]: docs/protocol.md
+
+<br>
+
 ## Scope of this crate
 
 Besides Cargo, several other package ecosystems and package managers for other
