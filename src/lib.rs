@@ -94,6 +94,7 @@ mod eval;
 mod identifier;
 mod impls;
 mod parse;
+mod simplify;
 
 #[cfg(feature = "serde")]
 mod serde;
@@ -104,6 +105,7 @@ use core::cmp::Ordering;
 use core::str::FromStr;
 
 pub use crate::parse::Error;
+pub use crate::simplify::{RemovalJustification, SimplificationStep, SimplifyCertificate};
 
 /// **SemVer version** as defined by <https://semver.org>.
 ///
@@ -512,6 +514,47 @@ impl VersionReq {
     /// described by `self`.
     pub fn matches(&self, version: &Version) -> bool {
         eval::matches_req(self, version)
+    }
+
+    /// Simplify this requirement by dropping comparators that are provably
+    /// redundant, without changing the set of versions matched by
+    /// [`matches`](#method.matches).
+    ///
+    /// A comparator is removed only when another comparator that survives
+    /// the simplification is structurally proven to imply it for every
+    /// version (numeric bounds), *and* its contribution to prerelease
+    /// admission is covered by a retained comparator on the same
+    /// `major.minor.patch` triple. Anything that cannot be proven is
+    /// retained; the equivalence proof never enumerates versions. The
+    /// returned [`SimplifyCertificate`] records every removal step and can
+    /// be checked independently via [`SimplifyCertificate::verify`].
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use semver::VersionReq;
+    ///
+    /// // Redundant lower bound: `>=1.2` implies `>=1.0`.
+    /// let req = VersionReq::parse(">=1.0, >=1.2, <2").unwrap();
+    /// let cert = req.simplify();
+    /// assert!(cert.verify());
+    /// assert_eq!(cert.simplified.to_string(), ">=1.2, <2");
+    /// assert_eq!(cert.retained, [1, 2]);
+    ///
+    /// // Stricter exclusive lower bound wins over the inclusive one.
+    /// let req = VersionReq::parse(">1.2.3, >=1.2.3, <2.0.0").unwrap();
+    /// let cert = req.simplify();
+    /// assert!(cert.verify());
+    /// assert_eq!(cert.simplified.to_string(), ">1.2.3, <2.0.0");
+    ///
+    /// // Stricter exclusive upper bound wins over the inclusive one.
+    /// let req = VersionReq::parse(">=1.0, <2.0.0, <=2.0.0").unwrap();
+    /// let cert = req.simplify();
+    /// assert!(cert.verify());
+    /// assert_eq!(cert.simplified.to_string(), ">=1.0, <2.0.0");
+    /// ```
+    pub fn simplify(&self) -> SimplifyCertificate {
+        simplify::simplify(self)
     }
 }
 
