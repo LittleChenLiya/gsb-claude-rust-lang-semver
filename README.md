@@ -66,6 +66,38 @@ Dependencies]* chapter of the Cargo reference.
 
 <br>
 
+## Binary codec
+
+The [`codec`] module provides a strict binary exchange format for
+[`VersionReq`]. It preserves the structure of each comparator — the operator,
+which of major/minor/patch were explicitly present, and the raw pre-release
+bytes — instead of padding omitted fields with zero (which would change the
+meaning: `^1`, `^1.2`, and `^1.2.0` are different requirements).
+
+```rust
+use semver::VersionReq;
+use semver::codec;
+
+let req = VersionReq::parse("^1.2.3-alpha.1").unwrap();
+let bytes = codec::encode(&req).unwrap();
+let decoded = codec::decode(&bytes).unwrap();
+assert_eq!(req, decoded);
+```
+
+The wire format, limits, and validation rules are documented in the
+[`codec`] module. Build and test with:
+
+```text
+cargo build
+cargo test --test test_codec
+cargo run --example codec
+```
+
+[`codec`]: https://docs.rs/semver/latest/semver/codec/index.html
+[`VersionReq`]: https://docs.rs/semver/latest/semver/struct.VersionReq.html
+
+<br>
+
 #### License
 
 <sup>
