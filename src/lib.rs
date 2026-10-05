@@ -94,6 +94,7 @@ mod eval;
 mod identifier;
 mod impls;
 mod parse;
+mod simplify;
 
 #[cfg(feature = "serde")]
 mod serde;
@@ -104,6 +105,7 @@ use core::cmp::Ordering;
 use core::str::FromStr;
 
 pub use crate::parse::Error;
+pub use simplify::{Basis, CertError, SimplifiedReq, SimplifyCert, SimplifyStep};
 
 /// **SemVer version** as defined by <https://semver.org>.
 ///
